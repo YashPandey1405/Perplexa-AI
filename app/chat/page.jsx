@@ -42,11 +42,12 @@ export default function Home() {
 
   // ================= SEND MESSAGE =================
   const handleSend = async () => {
-    if (!input.trim()) return; // Don't send empty messages
-    if (isAgentActive) return; // Don't send when agent is active
+    if (!input.trim()) return; // Avoid empty messages
+    if (isAgentActive) return; // Prevent multiple parallel sends
 
-    // Construct message
     let messageToSend = input;
+
+    // If an image is attached → send text + image payload
     if (profileImageURL) {
       messageToSend = [
         { type: "text", text: input },
@@ -54,32 +55,77 @@ export default function Home() {
       ];
     }
 
+    // Add user’s message to UI
     const newMessages = [...messages, { role: "user", content: messageToSend }];
     setMessages(newMessages);
     setLoading(true);
 
-    // Clear input & image preview
+    // Reset input & image
     setInput("");
     setProfileImage(null);
 
-    console.log("Sending message to backend:", messageToSend);
+    console.log("Sending message:", messageToSend);
 
     try {
-      const res = await axios.post(
-        "/api/response",
-        { message: messageToSend },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      console.log("Received response:", res.data.output);
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: res.data.output },
-      ]);
+      // 🔥 IMPORTANT: use fetch() — axios CANNOT stream
+      const response = await fetch("/api/response", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: messageToSend }),
+      });
+
+      if (!response.body) throw new Error("Streaming not supported");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let assistantText = ""; // incremental streamed text buffer
+
+      // Add an empty message bubble for the AI
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      // 🔥 Process streaming chunks
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break; // stream finished
+
+        const chunkText = decoder.decode(value);
+
+        // Stream may contain multiple JSON lines
+        const lines = chunkText.split("\n").filter(Boolean);
+
+        for (const line of lines) {
+          const data = JSON.parse(line);
+
+          // 🎯 If chunk is a streaming token
+          if (!data.isCompleted) {
+            assistantText += data.value; // accumulate text
+            console.log("In The Loop, " + assistantText);
+
+            // Update the last assistant message in real-time
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                role: "assistant",
+                content: assistantText,
+              };
+              return updated;
+            });
+          }
+
+          // 🎯 If final output arrives
+          if (data.isCompleted) {
+            console.log("FINAL OUTPUT:", data.value);
+          }
+        }
+      }
     } catch (error) {
       console.error("API error:", error);
+
       toast.error("Sorry, something went wrong. Please try again.");
-      setMessages([
-        ...newMessages,
+
+      setMessages((prev) => [
+        ...prev,
         {
           role: "assistant",
           content: "Sorry, I'm having trouble connecting. Please try again.",

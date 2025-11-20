@@ -1,26 +1,30 @@
-import { NextResponse } from "next/server";
-import { runBankingAssistant } from "@/lib/gateWay-Agent.js";
-import "dotenv/config";
+import { runPerplexaAI_Assistant } from "@/lib/gateWay-Agent.js";
 
 export async function POST(req) {
-  try {
-    const body = await req.json(); // Parse the JSON body
-    const { message } = body; // Now access the message from the parsed body
+  const { message } = await req.json();
 
-    console.log("The Input Message is: ", message);
+  const encoder = new TextEncoder();
 
-    const finalResponse = await runBankingAssistant(JSON.stringify(message));
-    console.log("✅ Response Is been Generated Successfully");
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        // Call your generator function
+        for await (const chunk of runPerplexaAI_Assistant(message)) {
+          // Send each chunk to the frontend
+          // console.log("Sending chunk In The Backend Controller :", chunk);
+          controller.enqueue(encoder.encode(JSON.stringify(chunk) + "\n"));
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
 
-    return NextResponse.json({
-      message: "Response Generated successfully!",
-      output: finalResponse,
-    });
-  } catch (error) {
-    console.error("OpenAi Agent SDK API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch data", details: error.message },
-      { status: 500 }
-    );
-  }
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-cache",
+    },
+  });
 }
