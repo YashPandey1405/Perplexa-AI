@@ -1,7 +1,8 @@
 import { runPerplexaAI_Assistant } from "@/lib/gateWay-Agent.js";
 
 export async function POST(req) {
-  const { message } = await req.json();
+  const { message, conversationId } = await req.json();
+  console.log("Conversation ID From /response Backend:", conversationId);
 
   const encoder = new TextEncoder();
 
@@ -9,7 +10,10 @@ export async function POST(req) {
     async start(controller) {
       try {
         // Call your generator function
-        for await (const chunk of runPerplexaAI_Assistant(message)) {
+        for await (const chunk of runPerplexaAI_Assistant(
+          message,
+          conversationId
+        )) {
           // Send each chunk to the frontend
           // console.log("Sending chunk In The Backend Controller :", chunk);
           controller.enqueue(encoder.encode(JSON.stringify(chunk) + "\n"));

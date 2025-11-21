@@ -9,10 +9,11 @@ import { agent } from "./Agent";
 import { Send, Bot, User, Mic, X } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 
+// The UseUser() Object Of The Clerk Model.......
+import { useUser } from "@clerk/nextjs";
+
 export default function Home() {
-  /* =========================================================
-   *                     STATE VARIABLES
-   * =======================================================*/
+  // All The State Variables......
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState(
     "Who is Yash Pandey Beyond Coding Skills?"
@@ -24,33 +25,46 @@ export default function Home() {
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageURL, setProfileImageURL] = useState("");
 
+  // The Conversational ID & Clerk Object For Context Handling.....
+  const { user, isLoaded } = useUser();
+  let [conversationId, setconversationId] = useState("");
+
   const messagesEndRef = useRef(null);
 
-  /* =========================================================
-   *                     ON MOUNT
-   * =======================================================*/
+  // The UseEffect Method On Mount Of Page......
   useEffect(() => {
-    alert(
-      `✨ Your Text & Voice Agent is ready!\n\n` +
-        `⚡ Image processing is currently in progress.\n\n` +
-        `💡 Memory support via Mem0 & VectorDB coming soon! 🚀`
-    );
-  }, []);
+    const init = async () => {
+      alert(
+        `✨ Your Text & Voice Agent is ready!\n` +
+          `⚡ Image processing is currently in progress.\n` +
+          `💡 Memory support via Mem0 & VectorDB coming soon! 🚀`
+      );
 
-  /* =========================================================
-   *                     SCROLL TO BOTTOM
-   * =======================================================*/
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+      const { data } = await axios.post("/api/conversation-id");
+      setconversationId(data.id);
+
+      // if (isLoaded && user) {
+      //   console.log(`
+      //     Name    : ${user.firstName}
+      //     User ID : ${user.id}
+      //     Email   : ${user.primaryEmailAddress?.emailAddress}
+      //     `);
+      // }
+    };
+
+    init(); // <-- Call the async function
+  }, [isLoaded]); // Wait until clerk loads the user
+  useEffect(() => {
+    if (conversationId) {
+      console.log("Correct (updated value):", conversationId);
+    }
+  }, [conversationId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  /* =========================================================
-   *                     SEND MESSAGE
-   * =======================================================*/
+  // Method To Handle Sending Messages......
   const handleSend = async () => {
     if (!input.trim() || isAgentActive) return;
 
@@ -72,7 +86,10 @@ export default function Home() {
       const response = await fetch("/api/response", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageToSend }),
+        body: JSON.stringify({
+          message: messageToSend,
+          conversationId: conversationId,
+        }),
       });
 
       if (!response.body) throw new Error("Streaming not supported");
@@ -125,18 +142,7 @@ export default function Home() {
     }
   };
 
-  /* =========================================================
-   *                     KEYBOARD HANDLER
-   * =======================================================*/
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !loading && !isAgentActive) {
-      handleSend();
-    }
-  };
-
-  /* =========================================================
-   *                     AGENT CONTROLS
-   * =======================================================*/
+  // Method To Handle The Start Of Agent Session......
   const handleStartAgent = async () => {
     if (isAgentActive) {
       toast.error("An agent session is already active.");
@@ -175,6 +181,7 @@ export default function Home() {
     }
   };
 
+  // Method To Handle The End Of Agent Session......
   const handleCloseAgent = async () => {
     if (!session) return;
 
@@ -189,9 +196,7 @@ export default function Home() {
     }
   };
 
-  /* =========================================================
-   *                     IMAGE UPLOAD
-   * =======================================================*/
+  // Method To Handle File Upload......
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -214,9 +219,18 @@ export default function Home() {
     }
   };
 
-  /* =========================================================
-   *                     RENDER UI
-   * =======================================================*/
+  // Method To Handle The Key Down Event.....
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !loading && !isAgentActive) {
+      handleSend();
+    }
+  };
+
+  // Scroll To Bottom Method
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col font-sans antialiased">
       <Toaster position="top-center" />
