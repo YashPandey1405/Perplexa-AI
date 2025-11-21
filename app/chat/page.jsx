@@ -43,6 +43,15 @@ export default function Home() {
       const { data } = await axios.post("/api/conversation-id");
       setconversationId(data.id);
 
+      const postRequestRes = await axios.post("/api/database/registerUser", {
+        clerkId: user?.id,
+        email: user?.primaryEmailAddress?.emailAddress ?? "",
+        fullName:
+          user?.fullName ??
+          `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        imageUrl: user?.imageUrl ?? "",
+      });
+
       // if (isLoaded && user) {
       //   console.log(`
       //     Name    : ${user.firstName}
@@ -89,6 +98,7 @@ export default function Home() {
         body: JSON.stringify({
           message: messageToSend,
           conversationId: conversationId,
+          clerkId: user.id,
         }),
       });
 
