@@ -10,7 +10,9 @@ import { Send, Bot, User, Mic, X } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 
 export default function Home() {
-  // ================= STATE VARIABLES =================
+  /* =========================================================
+   *                     STATE VARIABLES
+   * =======================================================*/
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState(
     "Who is Yash Pandey Beyond Coding Skills?"
@@ -18,11 +20,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
   const [isAgentActive, setIsAgentActive] = useState(false);
+
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageURL, setProfileImageURL] = useState("");
 
   const messagesEndRef = useRef(null);
 
+  /* =========================================================
+   *                     ON MOUNT
+   * =======================================================*/
   useEffect(() => {
     alert(
       `✨ Your Text & Voice Agent is ready!\n\n` +
@@ -31,7 +37,9 @@ export default function Home() {
     );
   }, []);
 
-  // ================= SCROLL TO BOTTOM =================
+  /* =========================================================
+   *                     SCROLL TO BOTTOM
+   * =======================================================*/
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -40,14 +48,14 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
-  // ================= SEND MESSAGE =================
+  /* =========================================================
+   *                     SEND MESSAGE
+   * =======================================================*/
   const handleSend = async () => {
-    if (!input.trim()) return; // Avoid empty messages
-    if (isAgentActive) return; // Prevent multiple parallel sends
+    if (!input.trim() || isAgentActive) return;
 
     let messageToSend = input;
 
-    // If an image is attached → send text + image payload
     if (profileImageURL) {
       messageToSend = [
         { type: "text", text: input },
@@ -55,19 +63,12 @@ export default function Home() {
       ];
     }
 
-    // Add user’s message to UI
-    const newMessages = [...messages, { role: "user", content: messageToSend }];
-    setMessages(newMessages);
+    setMessages((prev) => [...prev, { role: "user", content: messageToSend }]);
     setLoading(true);
-
-    // Reset input & image
     setInput("");
     setProfileImage(null);
 
-    console.log("Sending message:", messageToSend);
-
     try {
-      // 🔥 IMPORTANT: use fetch() — axios CANNOT stream
       const response = await fetch("/api/response", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,30 +80,24 @@ export default function Home() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
-      let assistantText = ""; // incremental streamed text buffer
+      let assistantText = "";
 
-      // Add an empty message bubble for the AI
+      // Create empty assistant bubble
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
-      // 🔥 Process streaming chunks
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break; // stream finished
+        if (done) break;
 
         const chunkText = decoder.decode(value);
-
-        // Stream may contain multiple JSON lines
         const lines = chunkText.split("\n").filter(Boolean);
 
         for (const line of lines) {
           const data = JSON.parse(line);
 
-          // 🎯 If chunk is a streaming token
           if (!data.isCompleted) {
-            assistantText += data.value; // accumulate text
-            console.log("In The Loop, " + assistantText);
+            assistantText += data.value;
 
-            // Update the last assistant message in real-time
             setMessages((prev) => {
               const updated = [...prev];
               updated[updated.length - 1] = {
@@ -112,16 +107,9 @@ export default function Home() {
               return updated;
             });
           }
-
-          // 🎯 If final output arrives
-          if (data.isCompleted) {
-            console.log("FINAL OUTPUT:", data.value);
-          }
         }
       }
     } catch (error) {
-      console.error("API error:", error);
-
       toast.error("Sorry, something went wrong. Please try again.");
 
       setMessages((prev) => [
@@ -137,17 +125,20 @@ export default function Home() {
     }
   };
 
-  // ================= ENTER KEY HANDLER =================
+  /* =========================================================
+   *                     KEYBOARD HANDLER
+   * =======================================================*/
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !loading && !isAgentActive) {
       handleSend();
     }
   };
 
-  // ================= AGENT CONTROL =================
-  async function handleStartAgent() {
+  /* =========================================================
+   *                     AGENT CONTROLS
+   * =======================================================*/
+  const handleStartAgent = async () => {
     if (isAgentActive) {
-      console.log("Agent session already running");
       toast.error("An agent session is already active.");
       return;
     }
@@ -164,7 +155,6 @@ export default function Home() {
 
       newSession.on("message", (message) => {
         if (message.role === "assistant") {
-          console.log("Agent sent message:", message.content);
           setMessages((prev) => [
             ...prev,
             { role: "assistant", content: message.content },
@@ -183,96 +173,57 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function handleCloseAgent() {
+  const handleCloseAgent = async () => {
     if (!session) return;
+
     try {
       await session.close();
-      console.log("Session closed successfully!");
       toast.success("Agent session closed.");
     } catch (err) {
-      console.error("❌ Error closing session:", err);
       toast.error("Error closing agent session.");
     } finally {
       setSession(null);
       setIsAgentActive(false);
     }
-  }
+  };
 
-  // ================= IMAGE UPLOAD =================
+  /* =========================================================
+   *                     IMAGE UPLOAD
+   * =======================================================*/
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const file = e.target.files[0];
-      if (!file) {
-        console.warn("No file selected");
-        return;
-      }
+      if (!file) return;
 
-      // Show preview
       const previewURL = URL.createObjectURL(file);
       setProfileImage(previewURL);
 
       const formData = new FormData();
       formData.append("file", file);
 
-      console.log("Uploading file to backend...");
       const response = await axios.post("/api/upload", formData);
-      console.log("Upload successful:", response.data);
-
       setProfileImageURL(response.data.url);
+
       toast.success("File uploaded successfully!");
-      console.log("Image URL set:", profileImageURL);
     } catch (error) {
-      console.error(
-        "File upload failed:",
-        error.response?.data || error.message
-      );
       toast.error("File upload failed!");
     }
   };
 
-  // ================= RENDER =================
+  /* =========================================================
+   *                     RENDER UI
+   * =======================================================*/
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col font-sans antialiased">
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster position="top-center" />
 
-      {/* ================= HEADER ================= */}
-      <header className="sticky top-0 z-10 bg-gray-950/70 backdrop-blur-lg border-b border-gray-800 px-8 py-4 flex justify-between items-center shadow-2xl">
-        <Link href="/about">
-          <h1 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-teal-400 to-sky-500 bg-clip-text text-transparent flex items-center gap-2 cursor-pointer">
-            <svg
-              className="w-6 h-6 text-sky-400"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 16H9v-2h2v2zm-1-4h-1v-4h1v4zm4 4h-2v-2h2v2zm-1-4h-2v-4h2v4zm-3-5V7h2v2h-2zm-3-2v2h2V7H8zm4-2v-2h2v2h-2zM8 5v2h2V5H8zm-3 2v2h2V7H5zm12 5h-2v-2h2v2zm0 4h-2v-2h2v2zm-3-4h-2v-4h2v4z" />
-            </svg>
-            Perplexa-AI
-          </h1>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          {isAgentActive ? (
-            <button
-              onClick={handleCloseAgent}
-              className="flex items-center gap-1 rounded-full text-red-400 border border-red-400 px-3 py-1 text-sm transition-colors hover:bg-red-400 hover:text-white"
-            >
-              <X size={16} /> Close Agent
-            </button>
-          ) : (
-            <button
-              onClick={handleStartAgent}
-              className="flex items-center gap-1 rounded-full text-green-400 border border-green-400 px-3 py-1 text-sm transition-colors hover:bg-green-400 hover:text-white"
-            >
-              <Mic size={16} /> Start Agent
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* ================= CHAT AREA ================= */}
+      {/* =====================================================
+       *                     CHAT AREA
+       * ===================================================*/}
       <main className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
         {messages.map((msg, idx) => (
           <motion.div
@@ -284,8 +235,8 @@ export default function Home() {
               msg.role === "user" ? "justify-end" : "justify-start"
             }`}
           >
-            {/* User/Assistant Icon */}
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center border border-sky-600/30">
+            {/* Icon */}
+            <div className="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-600/30 flex items-center justify-center">
               {msg.role === "assistant" ? (
                 <Bot size={20} className="text-sky-400" />
               ) : (
@@ -293,9 +244,9 @@ export default function Home() {
               )}
             </div>
 
-            {/* Message Bubble */}
+            {/* Bubble */}
             <div
-              className={`max-w-[85%] md:max-w-[65%] p-4 rounded-3xl shadow-lg backdrop-blur-sm transition-all duration-300 flex flex-col ${
+              className={`max-w-[85%] md:max-w-[65%] p-4 rounded-3xl shadow-lg backdrop-blur-sm ${
                 msg.role === "user"
                   ? "bg-sky-600/60 text-white rounded-br-none"
                   : "bg-gray-800/60 border border-gray-700/50 text-gray-200 rounded-bl-none"
@@ -306,7 +257,7 @@ export default function Home() {
                   c.type === "text" ? (
                     <p
                       key={i}
-                      className="whitespace-pre-line text-sm md:text-base leading-relaxed mt-2"
+                      className="text-sm md:text-base leading-relaxed mt-2"
                     >
                       {c.text}
                     </p>
@@ -320,7 +271,7 @@ export default function Home() {
                   )
                 )
               ) : (
-                <p className="whitespace-pre-line text-sm md:text-base leading-relaxed mt-2">
+                <p className="text-sm md:text-base leading-relaxed mt-2">
                   {msg.content}
                 </p>
               )}
@@ -328,25 +279,28 @@ export default function Home() {
           </motion.div>
         ))}
 
-        {/* Loading Skeleton */}
+        {/* Loading bubble */}
         {loading && (
           <div className="flex items-start gap-3 justify-start">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center border border-sky-600/30">
+            <div className="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-600/30 flex items-center justify-center">
               <Bot size={20} className="text-sky-400" />
             </div>
             <div className="bg-gray-800/60 border border-gray-700/50 px-5 py-3 rounded-3xl rounded-bl-none text-gray-400 animate-pulse shadow-md">
-              <div className="w-16 h-2 bg-gray-600 rounded"></div>
+              <div className="w-16 h-2 bg-gray-600 rounded" />
             </div>
           </div>
         )}
+
         <div ref={messagesEndRef} />
       </main>
 
-      {/* ================= INPUT AREA ================= */}
-      <footer className="sticky bottom-0 z-10 bg-gray-950/70 backdrop-blur-lg border-t border-gray-800 p-4">
-        <div className="flex gap-4 max-w-5xl mx-auto items-center">
-          {/* Text input + buttons */}
-          <div className="relative flex-1 flex items-center gap-2">
+      {/* =====================================================
+       *                     INPUT FOOTER
+       * ===================================================*/}
+      <footer className="sticky bottom-0 bg-gray-950/80 backdrop-blur-xl border-t border-gray-800 px-3 sm:px-6 py-3">
+        <div className="flex items-end gap-3 max-w-5xl mx-auto">
+          <div className="flex-1 relative">
+            {/* INPUT */}
             <input
               type="text"
               value={input}
@@ -354,19 +308,21 @@ export default function Home() {
               onKeyDown={handleKeyDown}
               placeholder={
                 isAgentActive
-                  ? "Agent is active. Speak to the microphone."
+                  ? "Agent is active. Speak to the microphone..."
                   : "Ask Yash AI-Assistant..."
               }
-              className={`w-full bg-gray-800/50 border border-gray-700/60 rounded-full pr-28 pl-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all placeholder-gray-500 ${
-                isAgentActive && "opacity-60 cursor-not-allowed"
-              }`}
               disabled={loading || isAgentActive}
+              className={`w-full bg-gray-900/60 border border-gray-700/60 
+                rounded-full py-3 pl-5 pr-40 sm:pr-[180px]
+                text-sm sm:text-base placeholder-gray-500
+                focus:outline-none focus:ring-2 focus:ring-sky-500 
+                transition-all shadow-[0_0_10px_rgba(255,255,255,0.05)]
+                ${isAgentActive && "opacity-60 cursor-not-allowed"}`}
             />
 
-            {/* Buttons */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              {/* Image upload */}
-              <label className="flex items-center justify-center px-3 py-2 bg-gray-700 hover:bg-gray-600 text-sm rounded-lg cursor-pointer transition">
+            {/* UPLOAD + SEND */}
+            <div className="absolute right-28 sm:right-[90px] top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <label className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-700/80 hover:bg-gray-600 rounded-full cursor-pointer transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 text-sky-400"
@@ -383,7 +339,6 @@ export default function Home() {
                 />
               </label>
 
-              {/* Send button */}
               <button
                 onClick={handleSend}
                 disabled={
@@ -391,19 +346,38 @@ export default function Home() {
                   (!input.trim() && !profileImageURL) ||
                   isAgentActive
                 }
-                className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-sky-600 hover:bg-sky-700 rounded-full font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-sky-600 hover:bg-sky-700 rounded-full shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
-                <Send size={18} className="text-white" />
+                <Send size={17} className="text-white" />
               </button>
+            </div>
+
+            {/* VOICE / STOP */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              {isAgentActive ? (
+                <button
+                  onClick={handleCloseAgent}
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] sm:text-xs rounded-full bg-red-500/20 border border-red-400 text-red-300 hover:bg-red-500 hover:text-white transition"
+                >
+                  <X size={12} /> Stop
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartAgent}
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] sm:text-xs rounded-full bg-green-500/20 border border-green-400 text-green-300 hover:bg-green-500 hover:text-white transition"
+                >
+                  <Mic size={12} /> Voice
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Small preview */}
+          {/* IMAGE PREVIEW */}
           {profileImage && (
             <img
               src={profileImage}
               alt="Preview"
-              className="w-14 h-14 object-cover rounded-lg border border-gray-600"
+              className="hidden sm:block w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-lg border border-gray-600"
             />
           )}
         </div>

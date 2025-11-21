@@ -10,7 +10,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col font-sans antialiased">
       {/* ================= HEADER ================= */}
-      <header className="sticky top-0 z-10 bg-gray-950/70 backdrop-blur-lg border-b border-gray-800 px-8 py-4 flex justify-between items-center shadow-2xl">
+      {/* <header className="sticky top-0 z-10 bg-gray-950/70 backdrop-blur-lg border-b border-gray-800 px-8 py-4 flex justify-between items-center shadow-2xl">
         <h1 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-teal-400 to-sky-500 bg-clip-text text-transparent flex items-center gap-2">
           Gen-AI Journey
         </h1>
@@ -22,7 +22,7 @@ export default function LandingPage() {
             <Code2 size={16} /> Perplexa-AI Project
           </Link>
         </div>
-      </header>
+      </header> */}
 
       {/* ================= INTRO SECTION ================= */}
       <section className="px-8 py-16 max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
