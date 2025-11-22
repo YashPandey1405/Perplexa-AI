@@ -49,9 +49,9 @@ export default function Home() {
 
       // User exists → Now run your normal logic
       alert(
-        `✨ Your Text & Voice Agent is ready!\n` +
-          `⚡ Image processing is currently in progress.\n` +
-          `💡 Memory support via Mem0 & VectorDB coming soon! 🚀`
+        "✨ Your Text & Voice Agents are now active!\n" +
+          "🖼️ Image Agent is spinning up in the background...\n" +
+          "🧠 Mem0 Memory + VectorDB support arriving in Version-3!"
       );
 
       const { data } = await axios.post("/api/conversation-id");

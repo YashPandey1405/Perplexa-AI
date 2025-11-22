@@ -5,26 +5,12 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import batchLectures from "@/Learning-Curve.js";
 import Navbar from "@/components/Navbar";
-import { Github, Linkedin, Code2, Heart } from "lucide-react";
+import { Github, Linkedin, Heart, Cpu, Shield, Database } from "lucide-react";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col font-sans antialiased">
       <Navbar />
-      {/* ================= HEADER ================= */}
-      {/* <header className="sticky top-0 z-10 bg-gray-950/70 backdrop-blur-lg border-b border-gray-800 px-8 py-4 flex justify-between items-center shadow-2xl">
-        <h1 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-teal-400 to-sky-500 bg-clip-text text-transparent flex items-center gap-2">
-          Gen-AI Journey
-        </h1>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/chat"
-            className="flex items-center gap-1 rounded-full text-sky-400 border border-sky-400 px-4 py-2 text-sm transition-colors hover:bg-sky-400 hover:text-white"
-          >
-            <Code2 size={16} /> Perplexa-AI Project
-          </Link>
-        </div>
-      </header> */}
 
       {/* ================= INTRO SECTION ================= */}
       <section className="px-8 py-16 max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
@@ -62,6 +48,7 @@ export default function LandingPage() {
             advanced agent architectures. Skilled in AWS, Docker, and real-time
             collaboration systems.
           </p>
+
           <div className="flex gap-4 mt-4">
             <Link href="https://github.com/YashPandey1405" target="_blank">
               <Github className="w-6 h-6 text-gray-400 hover:text-sky-400" />
@@ -85,13 +72,84 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* ================= PERPLEXA AI TIMELINE ================= */}
+      <section className="px-8 py-20 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold text-sky-400 text-center mb-6">
+          Perplexa AI – Project Timeline
+        </h2>
+        <p className="text-center text-gray-400 max-w-2xl mx-auto mb-14 text-sm">
+          A continuously evolving multi-agent AI platform. Below is a breakdown
+          of Version-1, Version-2, and what’s coming in Version-3.
+        </p>
+
+        <div className="relative border-l border-gray-700 ml-4">
+          {/* Version-1 */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-14 ml-6"
+          >
+            <div className="absolute -left-[11px] w-5 h-5 bg-sky-400 rounded-full"></div>
+            <h3 className="text-xl font-semibold text-sky-300 flex items-center gap-2">
+              <Cpu size={18} /> Version-1 (Sept 2025)
+            </h3>
+            <ul className="text-gray-300 text-sm mt-3 space-y-2">
+              <li>• Support for Text, Image & Voice Queries</li>
+              <li>• Dynamic AI responses using OpenAI LLMs</li>
+              <li>• Real-time chat flow with smooth UX</li>
+            </ul>
+          </motion.div>
+
+          {/* Version-2 */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-14 ml-6"
+          >
+            <div className="absolute -left-[11px] w-5 h-5 bg-emerald-400 rounded-full"></div>
+            <h3 className="text-xl font-semibold text-emerald-300 flex items-center gap-2">
+              <Shield size={18} /> Version-2 (Nov 2025) - Active Version
+            </h3>
+            <ul className="text-gray-300 text-sm mt-3 space-y-2">
+              <li>• Implemented full streaming (Frontend + Backend + LLM)</li>
+              <li>• Added multi-agent + tool-based Guardrail system</li>
+              <li>• Input/Output safety validation for every request</li>
+              <li>• Clerk Auth with Google + GitHub OAuth</li>
+              <li>• MongoDB chat storage (all users + all conversations)</li>
+              <li>• Cleaner UI + TypeScript adoption</li>
+              <li>• Integrated more utilities from OpenAI Agent SDK</li>
+            </ul>
+          </motion.div>
+
+          {/* Version-3 */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6 ml-6"
+          >
+            <div className="absolute -left-[11px] w-5 h-5 bg-purple-400 rounded-full"></div>
+            <h3 className="text-xl font-semibold text-purple-300 flex items-center gap-2">
+              <Database size={18} /> Version-3 (Coming Soon)
+            </h3>
+            <ul className="text-gray-300 text-sm mt-3 space-y-2">
+              <li>• Mem0 style long-term memory engine</li>
+              <li>• Vector DB integration for context retrievable memory</li>
+              <li>• Graph DB for structured agent reasoning</li>
+              <li>• Stronger multi-turn understanding</li>
+            </ul>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ================= CERTIFICATES ================= */}
       <section className="px-8 py-16 bg-gray-900 border-y border-gray-800">
         <h2 className="text-2xl font-bold text-sky-400 text-center mb-10">
           Achievements & Certificates
         </h2>
 
-        {/* Certificate Full Row */}
         <div className="max-w-4xl mx-auto mb-12">
           <Image
             src="/GenAI_Certificate.jpg"
@@ -102,7 +160,6 @@ export default function LandingPage() {
           />
         </div>
 
-        {/* Graduation Test */}
         <h3 className="text-xl font-semibold text-sky-300 text-center mb-6">
           Got 100/100 In Graduation Test Of GenAI With JS Batch
         </h3>
@@ -123,7 +180,6 @@ export default function LandingPage() {
           />
         </div>
 
-        {/* Notes Button */}
         <div className="text-center mt-6">
           <Link
             href="https://www.notion.so/Gen-AI-Dev-Notes-By-Yash-Pandey-25e61dc098e680cba43cd87e419a280c"
@@ -140,7 +196,9 @@ export default function LandingPage() {
         <h2 className="text-2xl font-bold text-sky-400 text-center mb-12">
           GenAI With JS Batch Journey
         </h2>
-        <div className="space-y-10">
+
+        {/* 2 Cards Per Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {batchLectures.map((video, idx) => (
             <motion.div
               key={idx}
@@ -153,11 +211,13 @@ export default function LandingPage() {
               <h3 className="text-lg font-semibold text-sky-300 mb-2">
                 {video.videoNo}. {video.videoTitle}
               </h3>
+
               <ul className="list-disc list-inside text-gray-300 text-sm space-y-1 mb-4">
                 {video.learnings.map((learn, i) => (
                   <li key={i}>{learn}</li>
                 ))}
               </ul>
+
               <div className="flex justify-between text-xs text-gray-400">
                 <span>📅 {video.date}</span>
                 {video.github && (

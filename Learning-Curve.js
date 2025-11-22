@@ -137,17 +137,17 @@ const batchLectures = [
     ],
     date: "20th September 2025",
   },
-  {
-    videoNo: "13",
-    videoTitle: "Docker Basics , Ollama And Fine-Tuning",
-    learnings: [
-      "Docker Image & Container",
-      "Docker Based Deployment Via AWS",
-      "Docker Image Optimization Strategies",
-      "Learned Some Basics Of Fine-Tuning Via Ollama",
-    ],
-    date: "22th September 2025",
-  },
+  // {
+  //   videoNo: "13",
+  //   videoTitle: "Docker Basics , Ollama And Fine-Tuning",
+  //   learnings: [
+  //     "Docker Image & Container",
+  //     "Docker Based Deployment Via AWS",
+  //     "Docker Image Optimization Strategies",
+  //     "Learned Some Basics Of Fine-Tuning Via Ollama",
+  //   ],
+  //   date: "22th September 2025",
+  // },
 ];
 
 export default batchLectures;
