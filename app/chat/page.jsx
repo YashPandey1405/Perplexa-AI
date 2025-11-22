@@ -2,17 +2,21 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { RealtimeSession } from "@openai/agents/realtime";
 import { agent } from "./Agent";
 import { Send, Bot, User, Mic, X } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
+import Navbar from "@/components/Navbar";
 
 // The UseUser() Object Of The Clerk Model.......
 import { useUser } from "@clerk/nextjs";
 
 export default function Home() {
+  const router = useRouter();
+
   // All The State Variables......
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState(
@@ -34,6 +38,16 @@ export default function Home() {
   // The UseEffect Method On Mount Of Page......
   useEffect(() => {
     const init = async () => {
+      // Wait for Clerk to load
+      if (!isLoaded) return;
+
+      // If user is NOT logged in → redirect and STOP everything
+      if (!user) {
+        router.replace("/about");
+        return; // ⛔ IMPORTANT → prevents alert + API calls
+      }
+
+      // User exists → Now run your normal logic
       alert(
         `✨ Your Text & Voice Agent is ready!\n` +
           `⚡ Image processing is currently in progress.\n` +
@@ -43,26 +57,20 @@ export default function Home() {
       const { data } = await axios.post("/api/conversation-id");
       setconversationId(data.id);
 
-      const postRequestRes = await axios.post("/api/database/registerUser", {
-        clerkId: user?.id,
-        email: user?.primaryEmailAddress?.emailAddress ?? "",
+      await axios.post("/api/database/registerUser", {
+        clerkId: user.id,
+        email: user.primaryEmailAddress?.emailAddress ?? "",
         fullName:
-          user?.fullName ??
+          user.fullName ??
           `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-        imageUrl: user?.imageUrl ?? "",
+        imageUrl: user.imageUrl ?? "",
       });
-
-      // if (isLoaded && user) {
-      //   console.log(`
-      //     Name    : ${user.firstName}
-      //     User ID : ${user.id}
-      //     Email   : ${user.primaryEmailAddress?.emailAddress}
-      //     `);
-      // }
     };
 
-    init(); // <-- Call the async function
-  }, [isLoaded]); // Wait until clerk loads the user
+    init();
+  }, [isLoaded, user, router]);
+
+  // UseEffect To Immediately Set The conversationId In The State.....
   useEffect(() => {
     if (conversationId) {
       console.log("Correct (updated value):", conversationId);
@@ -243,6 +251,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col font-sans antialiased">
+      <Navbar />
       <Toaster position="top-center" />
 
       {/* =====================================================

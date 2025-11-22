@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { countMessageTokens } from "@/utils/getTokenCount";
+import Navbar from "@/components/Navbar";
 import axios from "axios";
 
 // The UseUser() Object Of The Clerk Model.......
 import { useUser } from "@clerk/nextjs";
 
 export default function Page() {
+  const router = useRouter();
+
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -38,6 +42,14 @@ export default function Page() {
     fetchChats();
   }, [isLoaded, user]);
 
+  // UseEffect To Redirect User To /about Page When The User Isn't Logged In......
+  useEffect(() => {
+    // If Clerk finished loading AND user is missing → redirect
+    if (isLoaded && !user) {
+      router.push("/about");
+    }
+  }, [isLoaded, user, router]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40 text-gray-600">
@@ -48,6 +60,7 @@ export default function Page() {
 
   return (
     <div className="flex h-[85vh] bg-[#0d0f12] text-white rounded-lg shadow-2xl border border-gray-800 m-4 overflow-hidden">
+      <Navbar />
       {/* ================= LEFT SIDEBAR ================= */}
       <div className="w-72 border-r border-gray-800 bg-[#111317] overflow-y-auto">
         <h2 className="text-lg font-semibold p-4 border-b border-gray-800 bg-[#15171c]">

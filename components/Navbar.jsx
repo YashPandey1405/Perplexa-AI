@@ -26,7 +26,7 @@ export default function Navbar() {
               fill="currentColor"
               viewBox="0 0 24 24"
             >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48..."></path>
+              <path d="M12 2a10 10 0 110 20 10 10 0 010-20zm1 5h-2v6l5 3 .8-1.6-3.8-2.2V7z" />
             </svg>
             Perplexa-AI
           </h1>
@@ -50,14 +50,29 @@ export default function Navbar() {
             </SignedOut>
 
             <SignedIn>
-              <Link
-                href="/chat"
-                className="flex items-center gap-1 rounded-full text-sky-400 border border-sky-400 px-4 py-2 text-sm transition hover:bg-sky-400 hover:text-white"
-              >
-                <Code2 size={16} /> Perplexa AI
-              </Link>
+              <div className="flex items-center gap-3">
+                {/* Perplexa AI Button */}
+                <Link
+                  href="/chat"
+                  className="flex items-center gap-2 rounded-xl border border-sky-400/70 px-4 py-2 text-sm font-medium text-sky-500
+                 transition-all duration-200 hover:bg-sky-500 hover:text-white hover:shadow-md active:scale-[0.97]"
+                >
+                  <Code2 size={16} />
+                  <span>Perplexa AI</span>
+                </Link>
 
-              <UserButton afterSignOutUrl="/about" />
+                {/* My Chats Button */}
+                <Link
+                  href="/chat/getChats"
+                  className="flex items-center gap-2 rounded-xl border border-sky-400/70 px-4 py-2 text-sm font-medium text-sky-500
+                 transition-all duration-200 hover:bg-sky-500 hover:text-white hover:shadow-md active:scale-[0.97]"
+                >
+                  <Code2 size={16} />
+                  <span>My Chats</span>
+                </Link>
+
+                <UserButton afterSignOutUrl="/about" />
+              </div>
             </SignedIn>
           </ClerkLoaded>
         </div>
