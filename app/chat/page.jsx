@@ -98,6 +98,7 @@ export default function Home() {
     setLoading(true);
     setInput("");
     setProfileImage(null);
+    let assistantText = "";
 
     try {
       const response = await fetch("/api/response", {
@@ -114,8 +115,6 @@ export default function Home() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-
-      let assistantText = "";
 
       // Create empty assistant bubble
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -144,6 +143,15 @@ export default function Home() {
           }
         }
       }
+
+      // Set The Chat In The Database......
+      await axios.post("/api/database/registerChat", {
+        clerkId: user.id,
+        conversationId,
+        message: messageToSend,
+        assistantResponse: assistantText,
+      });
+      console.log("Chat Registered Sucsessfully In The Database");
     } catch (error) {
       toast.error("Sorry, something went wrong. Please try again.");
 
