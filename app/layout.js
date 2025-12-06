@@ -38,6 +38,7 @@ export default function RootLayout({ children }) {
             {/* <Navbar /> */}
           </header>
           {children}
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>
